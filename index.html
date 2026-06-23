@@ -3,39 +3,121 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NPV & IRR 계산기</title>
+  <title>NPV & IRR FCF 계산기</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>NPV와 IRR 계산기</h1>
-    <form id="calcForm" onsubmit="return false;">
-      <label>초기투자 (원): <input type="number" id="initial" value="1000" min="0" step="any"></label>
-
-      <div id="cashflows">
-        <div class="cf-row">기간 1: <input type="number" class="cf" value="400" step="any"></div>
-        <div class="cf-row">기간 2: <input type="number" class="cf" value="400" step="any"></div>
-        <div class="cf-row">기간 3: <input type="number" class="cf" value="400" step="any"></div>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">재무 분석 도구</p>
+        <h1>FCF 기반 NPV & IRR 계산기</h1>
+        <p class="hero-copy">매출, 감가상각비, 영업이익, 운전자본 변동을 입력하여 프로젝트의 자유현금흐름과 투자 성과를 자동으로 분석합니다.</p>
       </div>
-
-      <div class="row-buttons">
-        <button id="addPeriod" type="button">기간 추가</button>
-        <button id="removePeriod" type="button">기간 제거</button>
+      <div class="hero-meta">
+        <span>사용자 친화적 인터페이스</span>
+        <span>프로페셔널 금융 스타일</span>
       </div>
+    </header>
 
-      <label>할인율 (%): <input type="number" id="rate" value="10" step="any"></label>
+    <main class="container">
+      <section class="card">
+        <div class="card-header">
+          <h2>투자 정보</h2>
+          <p>투자 초기 현금 지출과 할인율을 입력하세요.</p>
+        </div>
 
-      <div class="actions">
-        <button id="calcBtn">계산</button>
-        <button id="resetBtn" type="button">초기화</button>
-      </div>
-    </form>
+        <div class="grid-two">
+          <label>
+            초기투자 (원)
+            <input type="number" id="initial" value="1000000" min="0" step="any">
+          </label>
+          <label>
+            할인율 (% V/WACC)
+            <input type="number" id="rate" value="10" step="any">
+          </label>
+        </div>
+      </section>
 
-    <div id="results">
-      <p>NPV: <span id="npvResult">-</span></p>
-      <p>IRR: <span id="irrResult">-</span></p>
-      <p id="message"></p>
-    </div>
+      <section class="card">
+        <div class="card-header">
+          <h2>기간별 재무 입력</h2>
+          <p>영업 현금흐름을 FCF로 자동 계산합니다.</p>
+        </div>
+        <div class="table-wrapper">
+          <table id="periodTable">
+            <thead>
+              <tr>
+                <th>기간</th>
+                <th>매출</th>
+                <th>감가상각비</th>
+                <th>영업이익</th>
+                <th>운전자본 변동</th>
+                <th>계산된 FCF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="period-row">
+                <th scope="row">1</th>
+                <td><input type="number" class="revenue" value="2000000" step="any"></td>
+                <td><input type="number" class="depreciation" value="120000" step="any"></td>
+                <td><input type="number" class="operatingProfit" value="450000" step="any"></td>
+                <td><input type="number" class="workingCapital" value="30000" step="any"></td>
+                <td><span class="fcf">0</span></td>
+              </tr>
+              <tr class="period-row">
+                <th scope="row">2</th>
+                <td><input type="number" class="revenue" value="2100000" step="any"></td>
+                <td><input type="number" class="depreciation" value="115000" step="any"></td>
+                <td><input type="number" class="operatingProfit" value="480000" step="any"></td>
+                <td><input type="number" class="workingCapital" value="25000" step="any"></td>
+                <td><span class="fcf">0</span></td>
+              </tr>
+              <tr class="period-row">
+                <th scope="row">3</th>
+                <td><input type="number" class="revenue" value="2200000" step="any"></td>
+                <td><input type="number" class="depreciation" value="110000" step="any"></td>
+                <td><input type="number" class="operatingProfit" value="520000" step="any"></td>
+                <td><input type="number" class="workingCapital" value="20000" step="any"></td>
+                <td><span class="fcf">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-actions">
+          <button id="addPeriod" type="button">기간 추가</button>
+          <button id="removePeriod" type="button">기간 제거</button>
+        </div>
+      </section>
+
+      <section class="card results-card">
+        <div class="card-header">
+          <h2>분석 결과</h2>
+          <p>계산 버튼을 눌러 NPV와 IRR을 확인하세요.</p>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-panel">
+            <span>NPV</span>
+            <strong id="npvResult">-</strong>
+          </div>
+          <div class="result-panel">
+            <span>IRR</span>
+            <strong id="irrResult">-</strong>
+          </div>
+          <div class="result-panel wide">
+            <span>프로젝트 평가지</span>
+            <strong id="statusResult">-</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="calcBtn">계산</button>
+          <button id="resetBtn" type="button">초기화</button>
+        </div>
+        <p id="message" class="alert"></p>
+      </section>
+    </main>
   </div>
 
   <script src="script.js"></script>

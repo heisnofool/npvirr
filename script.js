@@ -1,100 +1,177 @@
-function getCashFlows(){
-  const initial = parseFloat(document.getElementById('initial').value) || 0;
-  const cfEls = Array.from(document.querySelectorAll('.cf'));
-  const flows = [-Math.abs(initial)];
-  cfEls.forEach(el=>{
-    const v = parseFloat(el.value);
-    flows.push(isNaN(v)?0:v);
-  });
-  return flows;
+function formatCurrency(value){
+  if(isNaN(value) || value === null) return '-';
+  return Number(value).toLocaleString(undefined,{maximumFractionDigits:2});
+}
+
+function getPeriods(){
+  const rows = Array.from(document.querySelectorAll('#periodTable tbody .period-row'));
+  return rows.map(row=>({
+    revenue: parseFloat(row.querySelector('.revenue').value) || 0,
+    depreciation: parseFloat(row.querySelector('.depreciation').value) || 0,
+    operatingProfit: parseFloat(row.querySelector('.operatingProfit').value) || 0,
+    workingCapital: parseFloat(row.querySelector('.workingCapital').value) || 0,
+    fcfCell: row.querySelector('.fcf')
+  }));
+}
+
+function calcFCF(period){
+  return period.operatingProfit + period.depreciation - period.workingCapital;
 }
 
 function npv(rate, flows){
-  let sum=0;
-  for(let t=0;t<flows.length;t++){
-    sum += flows[t] / Math.pow(1+rate, t);
-  }
-  return sum;
+  return flows.reduce((sum, flow, index) => sum + flow / Math.pow(1 + rate, index), 0);
 }
 
 function computeIRR(flows){
   const maxIter = 200;
   const tol = 1e-7;
-  // find bracket
   let lower = -0.999999;
   let upper = 1;
   let fLower = npv(lower, flows);
   let fUpper = npv(upper, flows);
-  // expand upper until sign change or limit
-  let attempts=0;
-  while(fLower*fUpper>0 && attempts<100){
+  let attempts = 0;
+  while(fLower * fUpper > 0 && attempts < 100){
     upper *= 2;
     fUpper = npv(upper, flows);
     attempts++;
   }
-  if(fLower*fUpper>0) return null;
-  // bisection
+  if(fLower * fUpper > 0) return null;
   for(let i=0;i<maxIter;i++){
-    const mid = (lower+upper)/2;
-    const fmid = npv(mid, flows);
-    if(Math.abs(fmid) < tol) return mid;
-    if(fLower * fmid <= 0){
+    const mid = (lower + upper) / 2;
+    const fMid = npv(mid, flows);
+    if(Math.abs(fMid) < tol) return mid;
+    if(fLower * fMid <= 0){
       upper = mid;
-      fUpper = fmid;
+      fUpper = fMid;
     } else {
       lower = mid;
-      fLower = fmid;
+      fLower = fMid;
     }
   }
-  return (lower+upper)/2;
+  return (lower + upper) / 2;
 }
 
-function formatCurrency(x){
-  return Number(x).toLocaleString(undefined,{maximumFractionDigits:2});
+function updateFCFTable(){
+  const periods = getPeriods();
+  periods.forEach(period => {
+    const fcf = calcFCF(period);
+    period.fcfCell.textContent = formatCurrency(fcf);
+  });
 }
 
-document.getElementById('addPeriod').addEventListener('click', ()=>{
-  const cfContainer = document.getElementById('cashflows');
-  const n = cfContainer.querySelectorAll('.cf-row').length + 1;
-  const div = document.createElement('div');
-  div.className = 'cf-row';
-  div.innerHTML = `기간 ${n}: <input type="number" class="cf" value="0" step="any">`;
-  cfContainer.appendChild(div);
-});
+function addPeriod(){
+  const tbody = document.querySelector('#periodTable tbody');
+  const count = tbody.querySelectorAll('.period-row').length + 1;
+  const row = document.createElement('tr');
+  row.className = 'period-row';
+  row.innerHTML = `
+    <th scope="row">${count}</th>
+    <td><input type="number" class="revenue" value="0" step="any"></td>
+    <td><input type="number" class="depreciation" value="0" step="any"></td>
+    <td><input type="number" class="operatingProfit" value="0" step="any"></td>
+    <td><input type="number" class="workingCapital" value="0" step="any"></td>
+    <td><span class="fcf">0</span></td>
+  `;
+  tbody.appendChild(row);
+}
 
-document.getElementById('removePeriod').addEventListener('click', ()=>{
-  const cfContainer = document.getElementById('cashflows');
-  const rows = cfContainer.querySelectorAll('.cf-row');
-  if(rows.length>1) cfContainer.removeChild(rows[rows.length-1]);
-});
+function removePeriod(){
+  const tbody = document.querySelector('#periodTable tbody');
+  const rows = tbody.querySelectorAll('.period-row');
+  if(rows.length > 1){
+    tbody.removeChild(rows[rows.length - 1]);
+  }
+}
 
-document.getElementById('calcBtn').addEventListener('click', ()=>{
+function updateRowNumbers(){
+  const rows = document.querySelectorAll('#periodTable tbody .period-row');
+  rows.forEach((row,index)=>{
+    const th = row.querySelector('th');
+    th.textContent = index + 1;
+  });
+}
+
+function evaluateProject(npvVal){
+  if(npvVal > 0) return '투자 타당';
+  if(npvVal < 0) return '투자 부적합';
+  return '한계적';
+}
+
+function calculate(){
   document.getElementById('message').textContent = '';
-  const flows = getCashFlows();
+  const initial = parseFloat(document.getElementById('initial').value);
   const ratePerc = parseFloat(document.getElementById('rate').value);
-  if(isNaN(ratePerc)){
-    document.getElementById('message').textContent = '할인율을 입력하세요.';
+  if(isNaN(initial) || initial < 0){
+    document.getElementById('message').textContent = '초기투자 금액을 올바르게 입력하세요.';
     return;
   }
-  const rate = ratePerc/100;
+  if(isNaN(ratePerc)){
+    document.getElementById('message').textContent = '할인율을 올바르게 입력하세요.';
+    return;
+  }
+  const periods = getPeriods();
+  const flows = [-Math.abs(initial)];
+  periods.forEach(period=>{
+    const fcf = calcFCF(period);
+    flows.push(fcf);
+  });
+  updateFCFTable();
+  const rate = ratePerc / 100;
   const npvVal = npv(rate, flows);
   const irrVal = computeIRR(flows);
   document.getElementById('npvResult').textContent = formatCurrency(npvVal);
-  if(irrVal===null){
-    document.getElementById('irrResult').textContent = '계산 불가';
-  } else {
-    document.getElementById('irrResult').textContent = (irrVal*100).toFixed(4) + '%';
-  }
-});
+  document.getElementById('irrResult').textContent = irrVal === null ? '계산 불가' : (irrVal * 100).toFixed(2) + '%';
+  document.getElementById('statusResult').textContent = evaluateProject(npvVal);
+}
 
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  document.getElementById('initial').value = 1000;
-  const cfs = document.querySelectorAll('.cf');
-  cfs.forEach((el,i)=>{
-    el.value = (i<3)?400:0;
-  });
+function reset(){
+  document.getElementById('initial').value = 1000000;
   document.getElementById('rate').value = 10;
+  const tbody = document.querySelector('#periodTable tbody');
+  tbody.innerHTML = `
+    <tr class="period-row">
+      <th scope="row">1</th>
+      <td><input type="number" class="revenue" value="2000000" step="any"></td>
+      <td><input type="number" class="depreciation" value="120000" step="any"></td>
+      <td><input type="number" class="operatingProfit" value="450000" step="any"></td>
+      <td><input type="number" class="workingCapital" value="30000" step="any"></td>
+      <td><span class="fcf">0</span></td>
+    </tr>
+    <tr class="period-row">
+      <th scope="row">2</th>
+      <td><input type="number" class="revenue" value="2100000" step="any"></td>
+      <td><input type="number" class="depreciation" value="115000" step="any"></td>
+      <td><input type="number" class="operatingProfit" value="480000" step="any"></td>
+      <td><input type="number" class="workingCapital" value="25000" step="any"></td>
+      <td><span class="fcf">0</span></td>
+    </tr>
+    <tr class="period-row">
+      <th scope="row">3</th>
+      <td><input type="number" class="revenue" value="2200000" step="any"></td>
+      <td><input type="number" class="depreciation" value="110000" step="any"></td>
+      <td><input type="number" class="operatingProfit" value="520000" step="any"></td>
+      <td><input type="number" class="workingCapital" value="20000" step="any"></td>
+      <td><span class="fcf">0</span></td>
+    </tr>
+  `;
   document.getElementById('npvResult').textContent = '-';
   document.getElementById('irrResult').textContent = '-';
+  document.getElementById('statusResult').textContent = '-';
   document.getElementById('message').textContent = '';
+}
+
+document.getElementById('addPeriod').addEventListener('click', ()=>{
+  addPeriod();
+  updateRowNumbers();
 });
+
+document.getElementById('removePeriod').addEventListener('click', ()=>{
+  removePeriod();
+  updateRowNumbers();
+});
+
+document.getElementById('calcBtn').addEventListener('click', calculate);
+
+document.getElementById('resetBtn').addEventListener('click', reset);
+
+updateFCFTable();
