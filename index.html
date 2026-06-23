@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NPV & IRR 계산기</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>NPV와 IRR 계산기</h1>
+    <form id="calcForm" onsubmit="return false;">
+      <label>초기투자 (원): <input type="number" id="initial" value="1000" min="0" step="any"></label>
+
+      <div id="cashflows">
+        <div class="cf-row">기간 1: <input type="number" class="cf" value="400" step="any"></div>
+        <div class="cf-row">기간 2: <input type="number" class="cf" value="400" step="any"></div>
+        <div class="cf-row">기간 3: <input type="number" class="cf" value="400" step="any"></div>
+      </div>
+
+      <div class="row-buttons">
+        <button id="addPeriod" type="button">기간 추가</button>
+        <button id="removePeriod" type="button">기간 제거</button>
+      </div>
+
+      <label>할인율 (%): <input type="number" id="rate" value="10" step="any"></label>
+
+      <div class="actions">
+        <button id="calcBtn">계산</button>
+        <button id="resetBtn" type="button">초기화</button>
+      </div>
+    </form>
+
+    <div id="results">
+      <p>NPV: <span id="npvResult">-</span></p>
+      <p>IRR: <span id="irrResult">-</span></p>
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
