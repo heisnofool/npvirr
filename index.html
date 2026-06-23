@@ -8,11 +8,11 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="hero">
+    <header class="hero friendly">
       <div>
-        <p class="eyebrow">재무 분석 도구</p>
-        <h1>FCF 기반 NPV & IRR 계산기</h1>
-        <p class="hero-copy">매출, 감가상각비, 영업이익, 운전자본 변동을 입력하여 프로젝트의 자유현금흐름과 투자 성과를 자동으로 분석합니다.</p>
+        <p class="eyebrow">간단한 재무 분석</p>
+        <h1>프로젝트 가치 계산기</h1>
+        <p class="hero-copy">초보자도 쉽게 사용할 수 있도록 단계별로 입력하세요. 기본값을 사용해 바로 계산할 수 있습니다.</p>
       </div>
       <div class="hero-meta">
         <span>사용자 친화적 인터페이스</span>
@@ -33,23 +33,30 @@
         <div class="grid-two">
           <label>
             초기투자 (원)
-            <input type="number" id="initial" value="1000000" min="0" step="any">
+            <input type="number" id="initial" value="1000000" min="0" step="any" placeholder="예: 1000000">
+            <small class="helper">프로젝트 시작 시 투입되는 현금(양수로 입력)</small>
           </label>
           <label>
-            평균투하자본 (원)
-            <input type="number" id="investedCapital" value="800000" min="0" step="any">
+            할인율 (%)
+            <input type="number" id="rate" value="10" step="any" placeholder="예: 10">
+            <small class="helper">프로젝트 할인율 또는 WACC(예: 10)</small>
           </label>
         </div>
-        <div class="grid-two">
-          <label>
-            할인율 (% V/WACC)
-            <input type="number" id="rate" value="10" step="any">
-          </label>
-          <label>
-            법인세율 (%)
-            <input type="number" id="taxRate" value="25" min="0" max="100" step="any">
-          </label>
-        </div>
+        <details class="advanced">
+          <summary>고급 설정 (선택)</summary>
+          <div class="grid-two" style="margin-top:12px;">
+            <label>
+              평균투하자본 (원)
+              <input type="number" id="investedCapital" value="800000" min="0" step="any" placeholder="예: 800000">
+              <small class="helper">ROIC 계산에 사용되는 평균 자본</small>
+            </label>
+            <label>
+              법인세율 (%)
+              <input type="number" id="taxRate" value="25" min="0" max="100" step="any" placeholder="예: 25">
+              <small class="helper">영업이익의 세후(NOPAT) 계산에 사용</small>
+            </label>
+          </div>
+        </details>
       </section>
 
       <section class="card">
@@ -58,6 +65,7 @@
           <p>영업 현금흐름을 FCF로 자동 계산합니다.</p>
         </div>
         <div class="table-wrapper">
+          <p class="table-note">각 기간의 추정치를 입력하세요. 감가상각비는 비현금항목으로 FCF에 더해집니다.</p>
           <table id="periodTable">
             <thead>
               <tr>
@@ -72,26 +80,26 @@
             <tbody>
               <tr class="period-row">
                 <th scope="row">1</th>
-                <td><input type="number" class="revenue" value="2000000" step="any"></td>
-                <td><input type="number" class="depreciation" value="120000" step="any"></td>
-                <td><input type="number" class="operatingProfit" value="450000" step="any"></td>
-                <td><input type="number" class="workingCapital" value="30000" step="any"></td>
+                <td><input type="number" class="revenue" value="2000000" step="any" placeholder="매출"></td>
+                <td><input type="number" class="depreciation" value="120000" step="any" placeholder="감가상각"></td>
+                <td><input type="number" class="operatingProfit" value="450000" step="any" placeholder="영업이익"></td>
+                <td><input type="number" class="workingCapital" value="30000" step="any" placeholder="운전자본 변동"></td>
                 <td><span class="fcf">0</span></td>
               </tr>
               <tr class="period-row">
                 <th scope="row">2</th>
-                <td><input type="number" class="revenue" value="2100000" step="any"></td>
-                <td><input type="number" class="depreciation" value="115000" step="any"></td>
-                <td><input type="number" class="operatingProfit" value="480000" step="any"></td>
-                <td><input type="number" class="workingCapital" value="25000" step="any"></td>
+                <td><input type="number" class="revenue" value="2100000" step="any" placeholder="매출"></td>
+                <td><input type="number" class="depreciation" value="115000" step="any" placeholder="감가상각"></td>
+                <td><input type="number" class="operatingProfit" value="480000" step="any" placeholder="영업이익"></td>
+                <td><input type="number" class="workingCapital" value="25000" step="any" placeholder="운전자본 변동"></td>
                 <td><span class="fcf">0</span></td>
               </tr>
               <tr class="period-row">
                 <th scope="row">3</th>
-                <td><input type="number" class="revenue" value="2200000" step="any"></td>
-                <td><input type="number" class="depreciation" value="110000" step="any"></td>
-                <td><input type="number" class="operatingProfit" value="520000" step="any"></td>
-                <td><input type="number" class="workingCapital" value="20000" step="any"></td>
+                <td><input type="number" class="revenue" value="2200000" step="any" placeholder="매출"></td>
+                <td><input type="number" class="depreciation" value="110000" step="any" placeholder="감가상각"></td>
+                <td><input type="number" class="operatingProfit" value="520000" step="any" placeholder="영업이익"></td>
+                <td><input type="number" class="workingCapital" value="20000" step="any" placeholder="운전자본 변동"></td>
                 <td><span class="fcf">0</span></td>
               </tr>
             </tbody>
