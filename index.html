@@ -33,8 +33,18 @@
             <input type="number" id="initial" value="1000000" min="0" step="any">
           </label>
           <label>
+            평균투하자본 (원)
+            <input type="number" id="investedCapital" value="800000" min="0" step="any">
+          </label>
+        </div>
+        <div class="grid-two">
+          <label>
             할인율 (% V/WACC)
             <input type="number" id="rate" value="10" step="any">
+          </label>
+          <label>
+            법인세율 (%)
+            <input type="number" id="taxRate" value="25" min="0" max="100" step="any">
           </label>
         </div>
       </section>
@@ -104,6 +114,10 @@
           <div class="result-panel">
             <span>IRR</span>
             <strong id="irrResult">-</strong>
+          </div>
+          <div class="result-panel">
+            <span>ROIC</span>
+            <strong id="roicResult">-</strong>
           </div>
           <div class="result-panel wide">
             <span>프로젝트 평가지</span>

@@ -18,6 +18,10 @@ function calcFCF(period){
   return period.operatingProfit + period.depreciation - period.workingCapital;
 }
 
+function calcNOPAT(period, taxRate){
+  return period.operatingProfit * (1 - taxRate);
+}
+
 function npv(rate, flows){
   return flows.reduce((sum, flow, index) => sum + flow / Math.pow(1 + rate, index), 0);
 }
@@ -100,27 +104,43 @@ function evaluateProject(npvVal){
 function calculate(){
   document.getElementById('message').textContent = '';
   const initial = parseFloat(document.getElementById('initial').value);
+  const investedCapital = parseFloat(document.getElementById('investedCapital').value);
   const ratePerc = parseFloat(document.getElementById('rate').value);
+  const taxRatePerc = parseFloat(document.getElementById('taxRate').value);
   if(isNaN(initial) || initial < 0){
     document.getElementById('message').textContent = '초기투자 금액을 올바르게 입력하세요.';
+    return;
+  }
+  if(isNaN(investedCapital) || investedCapital <= 0){
+    document.getElementById('message').textContent = '평균투하자본을 올바르게 입력하세요.';
     return;
   }
   if(isNaN(ratePerc)){
     document.getElementById('message').textContent = '할인율을 올바르게 입력하세요.';
     return;
   }
+  if(isNaN(taxRatePerc) || taxRatePerc < 0 || taxRatePerc > 100){
+    document.getElementById('message').textContent = '법인세율을 0~100 사이로 입력하세요.';
+    return;
+  }
+  const taxRate = taxRatePerc / 100;
   const periods = getPeriods();
   const flows = [-Math.abs(initial)];
+  const nopats = [];
   periods.forEach(period=>{
     const fcf = calcFCF(period);
     flows.push(fcf);
+    nopats.push(calcNOPAT(period, taxRate));
   });
   updateFCFTable();
   const rate = ratePerc / 100;
   const npvVal = npv(rate, flows);
   const irrVal = computeIRR(flows);
+  const avgNOPAT = nopats.reduce((sum,val)=>sum+val,0) / nopats.length;
+  const roicVal = investedCapital > 0 ? avgNOPAT / investedCapital : null;
   document.getElementById('npvResult').textContent = formatCurrency(npvVal);
   document.getElementById('irrResult').textContent = irrVal === null ? '계산 불가' : (irrVal * 100).toFixed(2) + '%';
+  document.getElementById('roicResult').textContent = roicVal === null ? '계산 불가' : (roicVal * 100).toFixed(2) + '%';
   document.getElementById('statusResult').textContent = evaluateProject(npvVal);
 }
 
@@ -156,6 +176,7 @@ function reset(){
   `;
   document.getElementById('npvResult').textContent = '-';
   document.getElementById('irrResult').textContent = '-';
+  document.getElementById('roicResult').textContent = '-';
   document.getElementById('statusResult').textContent = '-';
   document.getElementById('message').textContent = '';
 }
